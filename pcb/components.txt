@@ -1,0 +1,10 @@
+MOSFET(0,69€) - https://si.farnell.com/on-semiconductor/ntd6415anlt4g/mosfet-n-ch-100v-23a-to-252/dp/2724411RL
+JACK(0,19€) - https://www.ic-elect.si/vticnica-za-napaj-4-2x1-3-za-tiv.html
+RESET(0,39€) - https://www.ic-elect.si/stikala-in-senzorji/stikala/tipke/tipka-mini-6x3-7-v-2-5mm-160gf-smd.html
+10uF(0,14€) - https://www.ic-elect.si/mult-10uf-25v-1206-x5r10-smd-30029.html
+100uF(0,18€) - https://www.ic-elect.si/elco-100uf-35v-8x10-smd.html
+10k(0,01€) - https://www.ic-elect.si/upor-10k-0402-1-smd-38356.html
+20k(0,01€) - https://www.ic-elect.si/upor-20k-0603-5-smd.html
+10E(0,01€) - https://www.ic-elect.si/upor-10r-0402-1-smd.html
+
+LM1117-3.3(0,986€) - https://si.farnell.com/texas-instruments/lm1117mpx-3-3-nopb/regulator-ldo-fixed-3-3v-sot-223/dp/3122024?st=LM1117
