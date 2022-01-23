@@ -11,8 +11,8 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     
     let r = args.get(1).expect("Red missing");
-    let g = args.get(1).expect("Green missing");
-    let b = args.get(1).expect("Blue missing");
+    let g = args.get(2).expect("Green missing");
+    let b = args.get(3).expect("Blue missing");
     
     let msg = get_color_msg(r, g, b);
 
