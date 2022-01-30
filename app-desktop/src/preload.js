@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require("electron");
+const { contextBridge } = require("electron");
 const ReinventedColorWheel = require("reinvented-color-wheel");
 
 const dgram = require("dgram");
@@ -27,7 +27,7 @@ contextBridge.exposeInMainWorld("colorwheel", {
       onChange: (color) => {
         const [r, g, b] = color.rgb;
         const message = Buffer.from(
-          `C${getColor(r)}${getColor(g)}${getColor(b)}`
+          `00C${getColor(r)}${getColor(g)}${getColor(b)}`
         );
         server.send(message, 0, message.length, PORT, BROADCAST_ADDR);
       },

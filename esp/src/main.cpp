@@ -5,10 +5,11 @@
 #define G 16
 #define B 12
 
-//---------- WiFi setup ----------//
+//------------ Config -----------//
 const char *ssid = "";
 const char *password = "";
 const char *deviceName = "RGB-controller";
+const char *deviceId = "01";
 //-------------------------------//
 
 WiFiUDP UDP;
@@ -53,11 +54,21 @@ void writeRgb(int r, int g, int b) {
   analogWrite(B, b);
 }
 
+bool isDeviceAddress(char *buffer) {
+  char incomingAddr[] = {buffer[0], buffer[1]};
+  return strcmp(incomingAddr, deviceId) == 0 || strcmp(incomingAddr, "00") == 0;
+}
+
 void cmdHandler(char *buffer) {
-  switch (buffer[0]) {
+  if(!isDeviceAddress(buffer)) {
+    return;
+  }
+
+  switch (buffer[2]) {
   case 'C':
-    writeRgb(getColor(buffer, 1), getColor(buffer, 4), getColor(buffer, 7));
+    writeRgb(getColor(buffer, 3), getColor(buffer, 6), getColor(buffer, 9));
     break;
+  }
 }
 
 void loop() {

@@ -1,24 +1,57 @@
-use std::net::UdpSocket;
 use std::env;
+use std::error::Error;
+use std::net::SocketAddr;
 
-const BROADCAST_ADDR: &str = "192.168.1.255:50000";
-const BIND_ADDR: &str = "0.0.0.0:50000";
+mod config;
+mod rgb_commander;
 
-fn main() {
-    let socket = UdpSocket::bind(BIND_ADDR).expect("couldn't bind to address");
-    socket.set_broadcast(true).expect("couldn't set broadcast");
-    
+use config::Config;
+use rgb_commander::RgbCommander;
+
+fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
-    
-    let r = args.get(1).expect("Red missing");
-    let g = args.get(2).expect("Green missing");
-    let b = args.get(3).expect("Blue missing");
-    
-    let msg = get_color_msg(r, g, b);
+    let mut config = Config::load_or_create("config.json").unwrap();
 
-    socket.send_to(msg.as_bytes(), BROADCAST_ADDR).unwrap();
+    let address: SocketAddr = config.address.parse().expect("Invalid server address!");
+    let rgb = RgbCommander::connect(address).expect("Network error!");
+
+    match args.get(1) {
+        None => println!("--print help--"),
+        Some(command) => match command.as_str() {
+            "ip:get" | "ip" => println!("Current broadcast ip: {}", config.address),
+            "ip:set" => {
+                let new_ip = args.get(2).expect("Ip missing. Usage: rgb ip:set <new-ip>");
+                config.update_address(&new_ip)?
+            }
+            "set" => {
+                let color = get_color(&args, 2);
+                let _ = rgb.set_color(color);
+            }
+
+            not_supported_command => println!(
+                "Command {} does not exist! --print help--",
+                not_supported_command
+            ),
+        },
+    }
+    Ok(())
 }
 
-fn get_color_msg(r: &str, g: &str, b: &str) -> String {
-    format!("C{:0>3}{:0>3}{:0>3}", r, g, b)
+fn get_color(args: &Vec<String>, start_index: usize) -> (u8, u8, u8) {
+    let r = args
+        .get(start_index)
+        .expect("Color red missing!")
+        .parse()
+        .expect("Invalid color red!");
+    let g = args
+        .get(start_index + 1)
+        .expect("Color green missing!")
+        .parse()
+        .expect("Invalid color green!");
+    let b = args
+        .get(start_index + 2)
+        .expect("Color blue missing!")
+        .parse()
+        .expect("Invalid color blue!");
+    (r, g, b)
 }
