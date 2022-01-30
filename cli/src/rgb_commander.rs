@@ -27,7 +27,6 @@ impl RgbCommander {
     }
 
     pub fn set_color(&self, color: Color) -> RgbSendResult {
-        println!("{:0>2}C{:0>3}{:0>3}{:0>3}", self.default_device_id, color.0, color.1, color.2);
         self.send_raw(format!("{:0>2}C{:0>3}{:0>3}{:0>3}", self.default_device_id, color.0, color.1, color.2).as_bytes())
     }
 }

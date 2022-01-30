@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 let color = get_color(&args, 2);
                 let _ = rgb.set_color(color);
             }
-            "default" | "default:show" => {}
+            "default" | "default:show" => println!("Current default id: {}", config.default_id),
             "default:set" => {
                 let new_default_id = args.get(2).expect("Default id missing. Usage: rgb default:set <device-id>");
                 config.update_default_id(new_default_id)?
