@@ -7,6 +7,9 @@ rgb ip:show
 rgb ip:set <ip>
 
 rgb set <r> <g> <b>
+
+rgb default:show
+rgb default:set <device-id>
 ```
 
 ## Communication protocol

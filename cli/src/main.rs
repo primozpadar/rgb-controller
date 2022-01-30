@@ -13,7 +13,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut config = Config::load_or_create("config.json").unwrap();
 
     let address: SocketAddr = config.address.parse().expect("Invalid server address!");
-    let rgb = RgbCommander::connect(address).expect("Network error!");
+    let default_id = config.default_id.to_string();
+    let rgb = RgbCommander::connect(address, default_id).expect("Network error!");
 
     match args.get(1) {
         None => println!("--print help--"),
@@ -21,17 +22,19 @@ fn main() -> Result<(), Box<dyn Error>> {
             "ip:get" | "ip" => println!("Current broadcast ip: {}", config.address),
             "ip:set" => {
                 let new_ip = args.get(2).expect("Ip missing. Usage: rgb ip:set <new-ip>");
-                config.update_address(&new_ip)?
+                config.update_address(new_ip)?
             }
             "set" => {
                 let color = get_color(&args, 2);
                 let _ = rgb.set_color(color);
             }
+            "default" | "default:show" => {}
+            "default:set" => {
+                let new_default_id = args.get(2).expect("Default id missing. Usage: rgb default:set <device-id>");
+                config.update_default_id(new_default_id)?
+            }
 
-            not_supported_command => println!(
-                "Command {} does not exist! --print help--",
-                not_supported_command
-            ),
+            not_supported_command => println!("Command {} does not exist! --print help--", not_supported_command),
         },
     }
     Ok(())
