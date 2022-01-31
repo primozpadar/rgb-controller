@@ -1,4 +1,6 @@
+use crate::utils::Color;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::{self, File};
 use std::io::ErrorKind;
@@ -8,6 +10,7 @@ use std::net::SocketAddr;
 pub struct Config {
     pub address: String,
     pub default_id: String,
+    pub presets: HashMap<String, Color>,
 
     #[serde(skip_serializing, skip_deserializing)]
     path: String,
@@ -49,11 +52,22 @@ impl Config {
         self.save()
     }
 
+    pub fn add_preset(&mut self, name: &str, color: Color) -> ConfigUpdateResult {
+        self.presets.insert(name.to_string(), color);
+        self.save()
+    }
+
+    pub fn remove_preset(&mut self, name: &str) -> ConfigUpdateResult {
+        self.presets.remove(name);
+        self.save()
+    }
+
     pub fn get_default() -> Config {
         Config {
             address: String::from("192.168.1.255:50000"),
             default_id: String::from("00"),
             path: String::from(""),
+            presets: get_default_presets(),
         }
     }
 }
@@ -63,4 +77,14 @@ fn create_new(path: &str) -> ConfigResult {
     let file = File::create(path)?;
     serde_json::to_writer_pretty(file, &defualt_config)?;
     return Ok(defualt_config);
+}
+
+fn get_default_presets() -> HashMap<String, Color> {
+    let mut presets: HashMap<String, Color> = HashMap::new();
+    presets.insert("red".to_string(), Color { r: 255, g: 0, b: 0 });
+    presets.insert("green".to_string(), Color { r: 0, g: 255, b: 0 });
+    presets.insert("blue".to_string(), Color { r: 0, g: 0, b: 255 });
+    presets.insert("black".to_string(), Color { r: 0, g: 0, b: 0 });
+    presets.insert("white".to_string(), Color { r: 255, g: 255, b: 255 });
+    presets
 }

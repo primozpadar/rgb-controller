@@ -7,6 +7,11 @@ rgb ip:show
 rgb ip:set <ip>
 
 rgb set <r> <g> <b>
+rgb set <preset>
+
+rgb preset:add <preset-name> <r> <g> <b>
+rgb preset:remove <preset-name>
+rgb preset:list
 
 rgb default:show
 rgb default:set <device-id>

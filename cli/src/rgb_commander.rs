@@ -1,3 +1,4 @@
+use crate::utils::Color;
 use std::net::SocketAddr;
 use std::net::UdpSocket;
 
@@ -8,8 +9,6 @@ pub struct RgbCommander {
     default_device_id: String,
     socket: UdpSocket,
 }
-
-type Color = (u8, u8, u8);
 
 impl RgbCommander {
     pub fn connect(address: SocketAddr, default_device_id: String) -> Result<RgbCommander, std::io::Error> {
@@ -26,7 +25,7 @@ impl RgbCommander {
         self.socket.send_to(payload, self.address)
     }
 
-    pub fn set_color(&self, color: Color) -> RgbSendResult {
-        self.send_raw(format!("{:0>2}C{:0>3}{:0>3}{:0>3}", self.default_device_id, color.0, color.1, color.2).as_bytes())
+    pub fn set_color(&self, color: &Color) -> RgbSendResult {
+        self.send_raw(format!("{:0>2}C{:0>3}{:0>3}{:0>3}", self.default_device_id, color.r, color.g, color.b).as_bytes())
     }
 }

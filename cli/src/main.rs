@@ -4,9 +4,11 @@ use std::net::SocketAddr;
 
 mod config;
 mod rgb_commander;
+mod utils;
 
 use config::Config;
 use rgb_commander::RgbCommander;
+use utils::Color;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
@@ -25,8 +27,32 @@ fn main() -> Result<(), Box<dyn Error>> {
                 config.update_address(new_ip)?
             }
             "set" => {
-                let color = get_color(&args, 2);
-                let _ = rgb.set_color(color);
+                if args.len() == 6 {
+                    let color = get_color(&args, 2);
+                    let _ = rgb.set_color(&color);
+                } else if args.len() == 3 {
+                    let preset = args.get(2).unwrap();
+                    let color = config.presets.get(preset).expect("Preset not found!");
+                    let _ = rgb.set_color(color);
+                } else {
+                    println!("Usage: rgb set <preset> or rgb set <r> <g> <b>");
+                }
+            }
+            "preset:add" => {
+                let preset_name = args
+                    .get(2)
+                    .expect("Preset name missing. Usage: rgb preset:add <preset-name> <r> <g> <b>");
+                let color = get_color(&args, 3);
+                config.add_preset(preset_name, color)?
+            }
+            "preset:remove" => {
+                let preset_name = args.get(2).expect("Preset name missing. Usage: rgb preset:remove <preset-name>");
+                config.remove_preset(preset_name)?
+            }
+            "preset:list" => {
+                for (name, color) in config.presets.iter() {
+                    println!("{:>5}: {}", name, color);
+                }
             }
             "default" | "default:show" => println!("Current default id: {}", config.default_id),
             "default:set" => {
@@ -40,7 +66,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn get_color(args: &Vec<String>, start_index: usize) -> (u8, u8, u8) {
+fn get_color(args: &Vec<String>, start_index: usize) -> Color {
     let r = args
         .get(start_index)
         .expect("Color red missing!")
@@ -56,5 +82,5 @@ fn get_color(args: &Vec<String>, start_index: usize) -> (u8, u8, u8) {
         .expect("Color blue missing!")
         .parse()
         .expect("Invalid color blue!");
-    (r, g, b)
+    Color { r, g, b }
 }
