@@ -1,5 +1,5 @@
 [package]
-name = "cli"
+name = "rgb"
 version = "0.1.0"
 authors = ["primozpadar <primoz.padar1@gmail.com>"]
 edition = "2018"

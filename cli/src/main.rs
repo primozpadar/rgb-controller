@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 config.update_address(new_ip)?
             }
             "set" => {
-                if args.len() == 6 {
+                if args.len() == 5 {
                     let color = get_color(&args, 2);
                     let _ = rgb.set_color(&color);
                 } else if args.len() == 3 {

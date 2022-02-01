@@ -2,6 +2,14 @@
 
 ## CLI Usage
 
+### Install (with cargo)
+
+```
+cargo install --path="."
+```
+
+### Commands
+
 ```
 rgb ip:show
 rgb ip:set <ip>
