@@ -80,6 +80,10 @@ impl Config {
             presets: get_default_presets(),
         }
     }
+
+    pub fn to_string(&self) -> String {
+        serde_json::to_string_pretty(&self).expect("Cant convert config to string")
+    }
 }
 
 fn create_new(full_path: &str) -> ConfigResult {

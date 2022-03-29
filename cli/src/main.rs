@@ -60,6 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 config.update_default_id(new_default_id)?
             }
             "config:path" => println!("{}", config.path),
+            "config:show" => println!("{}", config.to_string()),
             not_supported_command => println!("Command {} does not exist! --print help--", not_supported_command),
         },
     }
