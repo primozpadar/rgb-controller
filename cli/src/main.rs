@@ -19,8 +19,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let rgb = RgbCommander::connect(address, default_id).expect("Network error!");
 
     match args.get(1) {
-        None => println!("--print help--"),
+        None => println!("{}", HELP_STRING),
         Some(command) => match command.as_str() {
+            "help" => println!("{}", HELP_STRING),
             "ip:get" | "ip" => println!("Current broadcast ip: {}", config.address),
             "ip:set" => {
                 let new_ip = args.get(2).expect("Ip missing. Usage: rgb ip:set <new-ip>");
@@ -85,3 +86,29 @@ fn get_color(args: &Vec<String>, start_index: usize) -> Color {
         .expect("Invalid color blue!");
     Color { r, g, b }
 }
+
+const HELP_STRING: &'static str = r#"========== RGB CLI HELP ==========
+--- default ---
+set <r> <g> <b>         Set color to custom color
+set <preset-name>       Set color to preset color
+
+
+--- ip ---
+ip:get                  Get device broadcast ip from config
+ip:set <new-ip>         Set device broadcast ip
+
+
+--- preset ---
+preset:add <preset-name> <r> <g> <b>    Add new preset
+preset:remove <preset-name>             Remove preset
+preset:list                             Show all presets
+
+
+--- default ---
+default                 Get default device id (00 targets all devices)
+default:set             Set default device id
+
+
+--- config ---
+config:path             Show config path
+config:show             Print config"#;
