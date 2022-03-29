@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 let new_default_id = args.get(2).expect("Default id missing. Usage: rgb default:set <device-id>");
                 config.update_default_id(new_default_id)?
             }
-
+            "config:path" => println!("{}", config.path),
             not_supported_command => println!("Command {} does not exist! --print help--", not_supported_command),
         },
     }

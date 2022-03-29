@@ -1,4 +1,5 @@
 use crate::utils::Color;
+use directories_next::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
@@ -13,7 +14,7 @@ pub struct Config {
     pub presets: HashMap<String, Color>,
 
     #[serde(skip_serializing, skip_deserializing)]
-    path: String,
+    pub path: String,
 }
 
 type ConfigResult = Result<Config, Box<dyn Error>>;
@@ -22,16 +23,25 @@ type ConfigUpdateResult = Result<(), Box<dyn Error>>;
 impl Config {
     // find file or create new if it doesnt exist
     pub fn load_or_create(path: &str) -> ConfigResult {
-        let raw_config_result = fs::read_to_string(path);
+        let full_path = ProjectDirs::from("rs", "", "rgb-cli")
+            .expect("Cant get default dir for config")
+            .config_dir()
+            .join(path)
+            .to_str()
+            .expect("Cant get full path for config")
+            .to_string();
+
+        let raw_config_result = fs::read_to_string(&full_path);
         let mut config = match raw_config_result {
             Ok(raw_config) => serde_json::from_str::<Config>(&raw_config)?,
             Err(error) => match error.kind() {
-                ErrorKind::NotFound => create_new(path)?,
+                ErrorKind::NotFound => create_new(&full_path)?,
                 _ => return Err(Box::new(error)),
             },
         };
 
-        config.path = path.to_string();
+        config.path = full_path;
+
         return Ok(config);
     }
 
@@ -72,9 +82,14 @@ impl Config {
     }
 }
 
-fn create_new(path: &str) -> ConfigResult {
+fn create_new(full_path: &str) -> ConfigResult {
     let defualt_config = Config::get_default();
-    let file = File::create(path)?;
+
+    let path = std::path::Path::new(full_path);
+    let parent_dir = path.parent().expect("Cant create config directory!");
+    fs::create_dir_all(parent_dir)?;
+    let file = File::create(full_path)?;
+
     serde_json::to_writer_pretty(file, &defualt_config)?;
     return Ok(defualt_config);
 }
