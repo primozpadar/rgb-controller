@@ -1,1 +1,5 @@
 max_width = 140
+tab_spaces = 4
+group_imports = "StdExternalCrate"
+reorder_modules = true
+reorder_imports = true

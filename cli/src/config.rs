@@ -10,7 +10,8 @@ use std::net::SocketAddr;
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     pub address: String,
-    pub default_id: String,
+    #[serde(default)]
+    pub default_channel: u8,
     pub presets: HashMap<String, Color>,
 
     #[serde(skip_serializing, skip_deserializing)]
@@ -42,7 +43,7 @@ impl Config {
 
         config.path = full_path;
 
-        return Ok(config);
+        Ok(config)
     }
 
     fn save(&self) -> ConfigUpdateResult {
@@ -57,8 +58,8 @@ impl Config {
         self.save()
     }
 
-    pub fn update_default_id(&mut self, new_default_id: &str) -> ConfigUpdateResult {
-        self.default_id = new_default_id.to_string();
+    pub fn update_default_channel(&mut self, new_default_channel: u8) -> ConfigUpdateResult {
+        self.default_channel = new_default_channel;
         self.save()
     }
 
@@ -75,13 +76,13 @@ impl Config {
     pub fn get_default() -> Config {
         Config {
             address: String::from("192.168.1.255:50000"),
-            default_id: String::from("00"),
+            default_channel: 1,
             path: String::from(""),
             presets: get_default_presets(),
         }
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn to_string_pretty(&self) -> String {
         serde_json::to_string_pretty(&self).expect("Cant convert config to string")
     }
 }
@@ -95,7 +96,7 @@ fn create_new(full_path: &str) -> ConfigResult {
     let file = File::create(full_path)?;
 
     serde_json::to_writer_pretty(file, &defualt_config)?;
-    return Ok(defualt_config);
+    Ok(defualt_config)
 }
 
 fn get_default_presets() -> HashMap<String, Color> {

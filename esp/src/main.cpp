@@ -5,47 +5,32 @@
 #define G 16
 #define B 12
 
+
 //------------ Config -----------//
+// #define DEBUG
 const char *ssid = "";
 const char *password = "";
-const char *deviceName = "RGB-controller";
-const char *deviceId = "01";
+const char *deviceName = "";
+
+#define MANUAL_NET_CONFIG
+#ifdef MANUAL_NET_CONFIG
+IPAddress deviceIp(10, 101, 0, 2);
+IPAddress gateway(10, 0, 0, 1);
+IPAddress subnet(255, 0, 0, 0);
+#endif
 //-------------------------------//
 
 WiFiUDP UDP;
 unsigned int UDP_PORT = 50000;
 
-char incomingBuffer[32];
-int size;
-
-void setup() {
-  Serial.begin(115200);
-  delay(3000);
-
-  pinMode(R, OUTPUT);
-  pinMode(G, OUTPUT);
-  pinMode(B, OUTPUT);
-  digitalWrite(R, HIGH);
-  digitalWrite(G, HIGH);
-  digitalWrite(B, HIGH);
-
-  Serial.printf("Connecting to %s\n", ssid);
-  WiFi.disconnect();
-  WiFi.hostname(deviceName);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(250);
+void displaySuccessfulConnection() {
+  digitalWrite(R, LOW);
+  for(int i = 0; i <= 4; i++) {
+    analogWrite(G, 5);
+    delay(200);
+    analogWrite(G, 0);
+    delay(200);
   }
-  Serial.println("\nConnected!\n");
-
-  UDP.begin(UDP_PORT);
-}
-
-int getColor(char *buffer, int start) {
-  char x[] = {buffer[start], buffer[start + 1], buffer[start + 2]};
-  return atoi(x);
 }
 
 void writeRgb(int r, int g, int b) {
@@ -54,27 +39,63 @@ void writeRgb(int r, int g, int b) {
   analogWrite(B, b);
 }
 
-bool isDeviceAddress(char *buffer) {
-  char incomingAddr[] = {buffer[0], buffer[1]};
-  return strcmp(incomingAddr, deviceId) == 0 || strcmp(incomingAddr, "00") == 0;
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(R, OUTPUT);
+  pinMode(G, OUTPUT);
+  pinMode(B, OUTPUT);
+  writeRgb(5, 0, 0);
+
+  Serial.printf("Connecting to WIFI: %s\n", ssid);
+  WiFi.disconnect();
+  WiFi.hostname(deviceName);
+  WiFi.mode(WIFI_STA);
+  WiFi.setAutoReconnect(true);
+  
+  #ifdef MANUAL_NET_CONFIG
+    WiFi.config(deviceIp, gateway, subnet);
+  #endif
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(250);
+  }
+
+  Serial.println("\n\nConnected!");
+
+  Serial.print("\nDevice IP: ");
+  Serial.print(WiFi.localIP());
+  Serial.print("\nGateway: ");
+  Serial.print(WiFi.gatewayIP());
+  Serial.print("\nSubnet: ");
+  Serial.print(WiFi.subnetMask());
+  Serial.println();
+
+  displaySuccessfulConnection();
+
+  UDP.begin(UDP_PORT);
 }
 
-void cmdHandler(char *buffer) {
-  if(!isDeviceAddress(buffer)) {
+// BYTES LAYOUT Group-R-G-B
+#define MESSAGE_SIZE 4
+byte incomingBuffer[MESSAGE_SIZE];
+
+void loop() {
+  if (UDP.parsePacket() != MESSAGE_SIZE) {
     return;
   }
 
-  switch (buffer[2]) {
-  case 'C':
-    writeRgb(getColor(buffer, 3), getColor(buffer, 6), getColor(buffer, 9));
-    break;
+  UDP.read(incomingBuffer, MESSAGE_SIZE);
+
+  #ifdef DEBUG
+    Serial.printf("Received Message on channel %d (R %d, G %d, B %d)\n", incomingBuffer[0], incomingBuffer[1], incomingBuffer[2], incomingBuffer[3]);
+  #endif
+
+  // channels 1 and 3
+  if (incomingBuffer[0] == 1 || incomingBuffer[0] == 3) {
+    writeRgb(incomingBuffer[1], incomingBuffer[2], incomingBuffer[3]);
   }
 }
 
-void loop() {
-  size = UDP.parsePacket();
-  if (size) {
-    UDP.read(incomingBuffer, size);
-    cmdHandler(incomingBuffer);
-  }
-}

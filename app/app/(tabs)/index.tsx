@@ -1,56 +1,80 @@
-import { useEffect, useRef } from "react";
-import { Button, StyleSheet, View } from "react-native";
-import UdpSocket from "react-native-udp";
+import { useEffect, useRef, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 import Layout from "../../components/Layout";
+import TopBar from "../../components/TopBar";
+import { Device, getDevices } from "../../lib/storage";
+import Button from "../../components/Button";
+import UdpSocket from "react-native-udp";
 
 const PORT = 50000;
-const BROADCAST_ADDR = "10.255.255.255";
 
 export default function IndexPage() {
   const sock = useRef<any>();
 
-  function setColor(channel: string, red: number, green: number, blue: number) {
-    const ch = channel.padStart(2, "0");
-    const r = red.toString().padStart(3, "0");
-    const g = green.toString().padStart(3, "0");
-    const b = blue.toString().padStart(3, "0");
+  function setColor(ip: string, channel: number, red: number, green: number, blue: number) {
+    const messageData = new Uint8Array(4);
+    messageData[0] = channel;
+    messageData[1] = red;
+    messageData[2] = green;
+    messageData[3] = blue;
 
-    const message = `${ch}C${r}${g}${b}`;
-    sock.current.send(message, 0, message.length, PORT, BROADCAST_ADDR);
+    sock.current.send(messageData, 0, messageData.length, PORT, ip);
   }
 
-  function onRacunalnik() {
-    setColor("01", 255, 100, 10);
+  function onDevice(device: Device) {
+    setColor(device.ip, device.channel, device.color[0], device.color[1], device.color[2]);
   }
 
-  function onPostelja() {
-    setColor("03", 255, 100, 10);
+  function offDevice(device: Device) {
+    setColor(device.ip, device.channel, 0, 0, 0);
   }
 
-  function offRacunalnik() {
-    setColor("01", 0, 0, 0);
-  }
-
-  function offPostelja() {
-    setColor("03", 0, 0, 0);
-  }
+  const [devices, setDevices] = useState<Device[]>();
 
   useEffect(() => {
     const socket = UdpSocket.createSocket({ type: "udp4", reusePort: true });
     socket.bind(PORT);
     sock.current = socket;
+
+    (async () => {
+      setDevices(await getDevices());
+    })();
   }, []);
 
   return (
     <Layout>
-      <View style={styles.buttonsContainer}>
-        <View style={styles.buttonsInnerContainer}>
-          <Button color="#f5a41b" title="ON Racunalnik" onPress={onRacunalnik} />
-          <Button color="#422a01" title="OFF Racunalnik" onPress={offRacunalnik} />
-        </View>
-        <View style={styles.buttonsInnerContainer}>
-          <Button color="#f5a41b" title="ON Postelja" onPress={onPostelja} />
-          <Button color="#422a01" title="OFF Postelja" onPress={offPostelja} />
+      <View style={styles.container}>
+        <TopBar />
+        <View style={styles.buttonsContainer}>
+          {devices?.map((device) => (
+            <View key={device.name} style={styles.buttonsInnerContainer}>
+              <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>{device.name}</Text>
+              <View style={{ flexDirection: "row", gap: 4 }}>
+                <Button
+                  style={{
+                    backgroundColor: `rgb(${device.color[0]}, ${device.color[1]}, ${device.color[2]})`,
+                    flex: 1,
+                    paddingVertical: 12,
+                  }}
+                  textStyle={{ color: "black", fontWeight: "800" }}
+                  onPress={() => onDevice(device)}
+                >
+                  ON
+                </Button>
+                <Button
+                  style={{
+                    backgroundColor: `rgb(${device.color[0]}, ${device.color[1]}, ${device.color[2]})`,
+                    flex: 1,
+                    paddingVertical: 12,
+                  }}
+                  textStyle={{ color: "black", fontWeight: "800" }}
+                  onPress={() => offDevice(device)}
+                >
+                  OFF
+                </Button>
+              </View>
+            </View>
+          ))}
         </View>
       </View>
     </Layout>
@@ -61,9 +85,15 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     alignItems: "center",
     justifyContent: "center",
-    gap: 50,
+    gap: 32,
+    marginTop: 32,
   },
   buttonsInnerContainer: {
     width: "50%",
+    gap: 4,
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: 8,
   },
 });
