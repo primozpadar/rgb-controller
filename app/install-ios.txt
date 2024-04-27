@@ -1,0 +1,5 @@
+---- v1
+build app with expo
+
+build and sign it with xcode + install it to device
+https://www.youtube.com/watch?v=blnXWaOK7i0
